@@ -1,0 +1,2265 @@
+    <!DOCTYPE html>
+    <html lang="fr">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dia Maika ADMIN</title>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <style>
+
+    /* GLOBAL */
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:linear-gradient(135deg,#eef2f7,#f9fbff);
+    }
+
+    /* LAYOUT */
+    .container{
+      display:flex;
+      min-height:100vh;
+    }
+
+    /* LOGO COMPACT CLEAN */
+    .logo-container{
+      text-align:center;
+      margin-bottom:15px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px; /* control espace */
+    }
+
+    .logo{
+      width:160px;
+      margin:0;
+      display:block;
+    }
+
+    .logo-text{
+      font-size:18px;
+      font-weight:700;
+      line-height:1.3;
+      margin-top:4px;
+
+      background:linear-gradient(45deg,#000000,#430808);
+
+      -webkit-background-clip:text;
+      background-clip:text; /* 🔥 important */
+
+      -webkit-text-fill-color:transparent;
+      color:transparent; /* 🔥 fallback */
+    }
+
+    .loading{
+      display:none;
+      text-align:center;
+      padding:20px;
+      color:#666;
+    }
+
+    .spinner{
+      width:35px;
+      height:35px;
+      border:4px solid #e9ecef;
+      border-top:4px solid #0d6efd;
+      border-radius:50%;
+      margin:0 auto 10px;
+      animation:spin 0.8s linear infinite;
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    /* SIDEBAR */
+    .sidebar{
+      width:220px;
+      background:white;
+      padding:20px;
+      box-shadow:2px 0 10px rgba(0,0,0,0.05);
+    }
+
+    .menu button{
+      width:100%;
+      padding:10px;
+      margin-bottom:10px;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      background:#f1f3f5;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .menu button.active{
+      background:#0d6efd;
+      color:white;
+    }
+
+    /* MAIN */
+    .main{
+      flex:1;
+      padding:20px;
+    }
+
+    /* CARD */
+    .card{
+      background:white;
+      padding:15px;
+      border-radius:16px;
+      margin-bottom:15px;
+      box-shadow:0 8px 25px rgba(0,0,0,0.06);
+    }
+
+    /* INPUT */
+    input, textarea{
+      width:100%;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid #eee;
+      margin-bottom:10px;
+    }
+
+    /* BUTTON */
+    button{
+      padding:12px;
+      border:none;
+      border-radius:12px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:6px;
+    }
+
+    button:active{
+      transform:scale(0.97);
+    }
+
+    .generate{background:#0d6efd;color:white;}
+    .copy{background:#198754;color:white;margin-top:8px;}
+
+    /* TABLE */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      text-align:left; /* 🔥 align propre */
+    }
+
+    th{
+      background:#f1f3f5;
+      font-weight:700;
+      text-align:left;
+      padding:14px 12px; /* 🔥 manome espace */
+      line-height:1.4;   /* 🔥 interligne */
+    }
+
+    td{
+    text-align:left;
+      padding:14px 12px; /* 🔥 manome espace */
+      line-height:1.4;   /* 🔥 interligne */
+    }
+
+    .status{
+      padding:4px 10px;
+      border-radius:20px;
+      font-size:12px;
+      font-weight:600;
+    }
+
+    .status.actif{
+      background:#e6f4ea;
+      color:#198754;
+    }
+
+    .status.used{
+      background:#fde2e2;
+      color:#dc3545;
+    }
+
+    .status.expire{
+      background:#fff3cd;
+      color:#856404;
+    }
+
+    .status.invalid{
+      background:#e2e3e5;
+      color:#6c757d;
+    }
+
+    /* PAGES */
+    .page{display:none;}
+    .page.active{display:block;}
+
+    .toast{
+      position:fixed;
+      bottom:20px;
+      right:20px;
+      background:#333;
+      color:white;
+      padding:14px 18px;
+      border-radius:12px;
+      font-size:14px;
+      opacity:0;
+      transform:translateY(20px);
+      transition:all 0.3s ease;
+      z-index:9999;
+    }
+
+    .toast.show{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .toast.success{background:#198754;}
+    .toast.error{background:#dc3545;}
+    .toast.warning{background:#ffc107;color:#333;}
+
+    tbody tr{
+      border-bottom:1px solid #f1f3f5;
+    }
+
+    tbody tr:nth-child(even){
+      background:#f8f9fa;
+    }
+
+    tbody tr:hover{
+      background:#e9f2ff;
+      transition:0.2s;
+    }
+
+    td:nth-child(1){font-family:monospace;} /* token */
+    td:nth-child(4){text-align:center;} /* used */
+    td:nth-child(5), td:nth-child(6){
+      font-size:13px;
+      color:#555;
+    }
+
+    .lien-cell{
+      max-width:200px;
+      word-break:break-all;
+      font-size:12px;
+      color:#0d6efd;
+    }
+
+    .toggle-btn{
+      padding:6px 10px;
+      border:none;
+      border-radius:8px;
+      font-size:12px;
+      cursor:pointer;
+      color:white;
+    }
+
+    /* 🔥 loko ihany no miova */
+    .toggle-btn.activate{
+      background:#198754; /* vert */
+    }
+
+    .toggle-btn.deactivate{
+      background:#dc3545; /* rouge */
+    }
+
+    .toggle-btn:active{
+      transform:scale(0.95);
+    }
+
+    /* MODAL */
+    .modal{
+      position:fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      background:rgba(0,0,0,0.4);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      opacity:0;
+      pointer-events:none;
+      transition:0.3s;
+      z-index:9999;
+    }
+
+    .modal.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    .modal-content{
+    background:white;
+    border-radius:16px;
+    width:95%;
+    max-width:1000px;
+
+    display:flex;
+    flex-direction:column;
+
+    max-height:90vh;
+  }
+
+  /* HEADER FIXE */
+  .modal-header{
+    padding:15px;
+    border-bottom:1px solid #eee;
+    font-weight:700;
+  }
+
+  #modalContent{
+    flex:1;
+    overflow-y:auto;
+    padding:20px;
+  }
+
+    @keyframes scaleIn{
+      from{transform:scale(0.8);opacity:0;}
+      to{transform:scale(1);opacity:1;}
+    }
+
+    .modal-actions{
+    display:flex;
+    gap:10px;
+
+    position:sticky;
+    bottom:0;
+
+    background:white;
+    padding:15px;
+    border-top:1px solid #eee;
+  }
+
+    .btn-cancel{
+      flex:1;
+      padding:10px;
+      border:none;
+      border-radius:10px;
+      background:#dee2e6;
+      cursor:pointer;
+    }
+
+    .btn-confirm{
+      flex:1;
+      padding:10px;
+      border:none;
+      border-radius:10px;
+      background:#0d6efd;
+      color:white;
+      cursor:pointer;
+    }
+
+    .lien-box{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .copy-btn{
+      border:none;
+      background:#0d6efd;
+      color:white;
+      border-radius:6px;
+      padding:4px 6px;
+      cursor:pointer;
+      font-size:11px;
+    }
+
+    .copy-btn:active{
+      transform:scale(0.9);
+    }
+
+    #searchClient{
+      margin-bottom:15px;
+      border:1px solid #dee2e6;
+      background:#f8f9fa;
+    }
+
+    .popup-container{
+      background:#fff;
+      border-radius:16px;
+      padding:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.15);
+    }
+
+    .popup-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      border-bottom:1px solid #eee;
+      padding-bottom:10px;
+      margin-bottom:15px;
+    }
+
+    .popup-title{
+      font-size:20px;
+      font-weight:700;
+    }
+
+    .popup-section{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:15px;
+    }
+
+    .popup-box{
+      width:48%;
+    }
+
+    .popup-box h4{
+      border-left:4px solid red;
+      padding-left:8px;
+    }
+
+    .popup-table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+    }
+
+    .popup-table th{
+      background:#e53935;
+      color:white;
+      padding:10px;
+    }
+
+    .popup-table td{
+      padding:10px;
+      border-bottom:1px solid #eee;
+    }
+
+    .price{
+      font-weight:700;
+    }
+
+    .export-btn{
+      margin-top:15px;
+      background:#e53935;
+      color:white;
+      border:none;
+      padding:12px;
+      border-radius:10px;
+      cursor:pointer;
+    }
+
+    .png-mode {
+      font-size: 10px !important;
+      line-height: 1.5 !important;
+    }
+
+    .png-mode * {
+      font-size: 10px !important;
+      line-height: 1.5 !important;
+    }
+
+    .notif-badge{
+      display:block;    
+      background:#198754;
+      color:white;
+      padding:5px 10px;
+      border-radius:12px;
+      font-size:11px;
+      font-weight:600;
+      margin-bottom:4px;   
+      width:fit-content;
+      /* display:inline-block; */
+    }
+
+    button:disabled{
+      opacity:0.5;
+      cursor:not-allowed;
+    }
+
+    /* MOBILE */
+    .bottom-nav{display:none;}
+
+    @media(max-width:768px){
+
+      .toast{
+        bottom:80px;
+        right:10px;
+        left:10px;
+        }
+
+      .container{flex-direction:column;}
+
+      .sidebar{
+        width:100%;
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        padding:10px;
+      }
+
+    
+      .logo-container{
+        gap:2px;
+        margin-bottom:10px;
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+      }
+
+      .logo{
+        width:140px;
+        margin:auto;
+      }
+
+      .logo-text{
+        font-size:16px;
+        line-height:1.25;
+        text-align:center;
+        width:100%;
+      }
+
+      .menu{display:none;}
+      .main{padding:12px;}
+      button{width:100%;}
+
+      thead{display:none;}
+
+      tbody{
+        display:flex;
+        flex-direction:column;
+        gap:14px;
+      }
+
+      body{
+      background:linear-gradient(135deg,#e9edf3,#f4f7fb);
+      }
+
+    /* 🔥 barre bleu */
+    tr::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      width:5px;
+      height:100%;
+      background:#0d6efd;
+      border-radius:0 6px 6px 0;
+      background:linear-gradient(180deg,#0d6efd,#4dabf7);
+    }
+
+      tr{
+        display:flex;
+        flex-direction:column;
+        background:#ffffff;
+        padding:14px;
+        border-radius:16px;
+        box-shadow:0 6px 20px rgba(0,0,0,0.07);
+        line-height:1.5; /* 🔥 espace anaty card */
+        border:1px solid #edf0f2;
+        position:relative;
+        overflow:hidden;
+        padding-left:12px;
+      }
+
+      td{
+        display:flex;
+        justify-content:space-between;
+        padding:6px 0;
+      }
+      
+
+    /* 🔥 LIVRAISONS LABEL */
+      #livraisonsTable td:nth-child(1):before{content:"Nom client";}
+      #livraisonsTable td:nth-child(2):before{content:"Date";}
+
+      /* 🔔 FIX NOTIFICATION À LA LIGNE */
+    #livraisonsTable td:nth-child(3){
+      display:flex;
+      flex-direction:column; 
+      align-items:stretch;
+    }
+
+    #livraisonsTable td:nth-child(3) > div{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-end;
+      gap:4px;
+      width:100%;
+    }
+
+    /* ❗ override ilay margin-left:auto */
+    #livraisonsTable td:nth-child(3) > *{
+      text-align:right !important;
+      align-self:flex-end;
+    }
+
+
+      /* badge tsirairay */
+      #livraisonsTable td:nth-child(3) .notif-badge{
+        display:block;
+      width:fit-content;
+    }
+
+    #livraisonsTable td:nth-child(4):before{content:"Action";}
+
+    #livraisonsTable td:nth-child(4){
+      display:flex;
+    }
+
+    #livraisonsTable td:nth-child(4) button{
+      margin-left:auto;
+    }
+
+      /*
+      td:nth-child(5):before{content:"Création";}
+      td:nth-child(6):before{content:"Expiration";} 
+      */
+
+    td:nth-child(7){
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    td:nth-child(7)::before{
+      /* content:"Remarque"; */
+      font-weight:700;
+      color:#333;
+      opacity:0.7;
+      font-size:13px;
+    }
+
+    td:nth-child(7) .lien-box{
+      display:flex;
+      align-items:center;
+      width:100%;
+      gap:6px;
+    }
+
+    td:nth-child(7) .value{
+      flex:1;
+      font-size:11px;
+      color:#0d6efd;
+      word-break:break-all;
+    }
+
+    td:nth-child(7) .copy-btn{
+      margin-left:auto; /* 🔥 ITO no tena manitsy */
+      padding:3px 6px;
+      font-size:10px;
+      border-radius:6px;
+    }
+
+
+    td:nth-child(8):before{content:"Action";}
+
+      .status{
+        padding:4px 10px;
+        border-radius:20px;
+        font-size:12px;
+        font-weight:600;
+        display:inline-block;
+      }
+
+      .bottom-nav{
+        position:fixed;
+        bottom:0;
+        left:0;
+        width:100%;
+        background:white;
+        display:flex;
+        justify-content:space-around;
+        padding:10px;
+        box-shadow:0 -5px 15px rgba(0,0,0,0.1);
+      }
+
+      .bottom-nav button{
+        background:none;
+        border:none;
+        flex-direction:column;
+        font-size:12px;
+        color:#666;
+      }
+
+      .bottom-nav button.active{
+        color:#0d6efd;
+      }
+
+      .main{
+        padding-bottom:70px;
+        background:#f8f9fb;
+        border-radius:20px;
+      }
+
+      td:before{
+      font-weight:700; /* 🔥 BOLD */
+      color:#333;
+      opacity:0.7;
+      font-size:13px;
+    }
+
+    .card{
+      background:white;
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:15px;
+
+      /* 🔥 effet miavaka */
+      box-shadow:0 12px 30px rgba(0,0,0,0.10); /* 🔥 somary lalina */
+      border:1px solid #e9ecef;
+    }
+
+    tr:active{
+      transform:scale(0.98);
+    }
+
+    .toggle-btn{
+      padding:6px 10px;
+      font-size:11px;
+      border-radius:8px;
+      width:auto !important; /* ❗ manala full width */
+      min-width:90px;
+    }
+
+    /* couleur dynamique */
+    .toggle-btn.activate{
+      background:#198754;
+    }
+
+    .toggle-btn.deactivate{
+      background:#dc3545;
+    }
+
+    .copy-btn{
+      padding:6px 10px;       /* mitovy feeling amin toggle */
+      font-size:11px;
+      border-radius:8px;
+
+      width:auto !important;  /* ❗ manakana full width */
+      min-width:unset;        /* ❗ esorina raha misy effet */
+      flex-shrink:0;          /* ❗ tsy ho voatsindry */
+    }
+
+    /* 🔥 LIVRAISONS MOBILE FIX */
+    #livraisonsTable td{
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+    }
+
+    /* 🔥 label mitovy style */
+    #livraisonsTable td:before{
+      content:attr(data-label);
+      font-weight:700;
+      color:#333;
+      opacity:0.7;
+      font-size:13px;
+
+      width:120px;        /* 🔥 clé alignement */
+      flex-shrink:0;
+      text-align:left;
+    }
+
+    #livraisonsTable td > *{
+      flex:1;
+      text-align:right;
+    }
+
+    /* 📅 champ date */
+    #livraisonsTable input[type="date"]{
+      width:130px;
+      padding:6px 8px;
+      font-size:12px;
+      border-radius:8px;
+      text-align:right;
+    }
+
+    /* 🔘 bouton voir */
+    #livraisonsTable button{
+      width:auto !important;
+      padding:6px 10px;
+      font-size:12px;
+      border-radius:8px;
+      text-align:center;
+    }
+
+    /* 🔥 MODAL MOBILE FIX */
+    #livraisonModal{
+      align-items:flex-end; /* avy any ambany */
+    }
+
+    #livraisonModal .modal-content{
+      width:100% !important;
+      height:90vh;              /* 🔥 limite hauteur */
+      border-radius:20px 20px 0 0;
+      display:flex;
+      flex-direction:column;
+      padding:0;
+    }
+
+    /* 🔥 contenu scrollable */
+    #modalContent{
+      overflow-y:auto;
+      flex:1;
+      padding:20px;
+    }
+
+    /* 🔥 footer fixe */
+    #livraisonModal .modal-actions{
+      position:sticky;
+      bottom:0;
+      background:white;
+      padding:10px;
+      border-top:1px solid #eee;
+    }
+
+    #fiche{
+      font-size:12px;
+    }
+
+    #fiche table{
+      font-size:11px;
+    }
+
+    /* 🔥 CLIENTS MOBILE LABEL */
+  #tableBody td{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  /* label */
+  #tableBody td:before{
+    content:attr(data-label);
+    font-weight:700;
+    color:#333;
+    opacity:0.7;
+    font-size:13px;
+
+    width:120px;
+    flex-shrink:0;
+    text-align:left;
+  }
+
+  /* valeur */
+  #tableBody td > *{
+    flex:1;
+    text-align:right;
+  }
+
+  #tableBody .value{
+    word-break:break-all;
+    font-size:11px;
+    color:#0d6efd;
+  }
+
+    }
+
+    </style>
+    </head>
+
+    <body>
+
+    <div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+
+      <div class="logo-container">
+        <img src="logo.jpg" class="logo">
+        <h2 class="logo-text">Dia Maika ADMIN</h2>
+      </div>
+
+      <div class="menu">
+        <button onclick="showPage('create',this)" class="active">
+          <i data-lucide="link"></i> Créer
+        </button>
+
+        <button onclick="showPage('clients',this)">
+          <i data-lucide="users"></i> Clients
+        </button>
+
+        <button onclick="showPage('livraisons',this)">
+          <i data-lucide="truck"></i> Livraisons
+        </button>
+
+        <button onclick="logout()" style="
+            background:#dc3545;
+            color:white;
+            margin-top:10px;
+          ">
+        <i data-lucide="log-out"></i> Déconnexion
+  </button>
+      </div>
+
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+
+      <!-- CREATE LIEN -->
+      <div id="create" class="page active">
+        <div class="card">
+
+          <h4>Créer lien client</h4>
+
+          <label>Nom du client</label>
+          <input type="text" id="nomClient" placeholder="Rakoto">
+
+          <button class="generate" onclick="generateLink()">
+            Générer le lien
+          </button>
+
+          <label>Lien à envoyer</label>
+          <textarea id="result" style="height:80px;"></textarea>
+
+          <button class="copy" onclick="copyLink()">
+            Copier le lien
+          </button>
+
+        </div>
+      </div>
+
+      <!-- CLIENTS -->
+      <div id="clients" class="page">
+        <div class="card">
+          <h4>Clients</h4>
+          <input type="text" id="searchClient" placeholder="🔍 Rechercher un client..." oninput="filterClients()">
+          <!-- 🔥 BOUTON RECHARGER -->
+          <button onclick="loadTable()" style="margin-bottom:10px;">
+            🔄 Recharger
+          </button>
+          <table>
+            <thead>
+              <tr>
+                <th>Token</th>
+                <th>Nom</th>
+                <th>Status</th>
+                <th>Used</th>
+                <th>Création</th>
+                <th>Expiration</th>
+                <th>Lien</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+          <!-- 🔥 LOADING -->
+          <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Chargement des clients...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVRAISONS -->
+      <div id="livraisons" class="page">
+      <div class="card">
+        <h4>Livraisons</h4>
+        <input type="text" id="searchLivraison" placeholder="🔍 Rechercher un client..." oninput="filterLivraisons()">
+        <table>
+          <thead>
+            <tr>
+              <th>Nom client</th>
+              <th>Date</th>
+                <th>Notifications</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="livraisonsTable"></tbody>
+        </table>
+
+          <div id="detailsLivraisons" style="margin-top:15px;"></div>
+
+        <div id="loadingLivraisons" class="loading">
+          <div class="spinner"></div>
+          <p>Chargement des livraisons...</p>
+        </div>
+
+      </div>
+    </div>
+
+    </div>
+
+    </div>
+
+    <!-- MOBILE NAV -->
+    <div class="bottom-nav">
+      <button onclick="showPage('create',this)" class="active">
+        <i data-lucide="link"></i>
+      </button>
+      <button onclick="showPage('clients',this)">
+        <i data-lucide="users"></i>
+      </button>
+      <button onclick="showPage('livraisons',this)">
+        <i data-lucide="truck"></i>
+      </button>
+      <button onclick="logout()">
+        <i data-lucide="log-out"></i>
+      </button>
+    </div>
+
+    <script>
+
+  const session = localStorage.getItem("admin_session");
+
+  if(!session){
+    window.location.href = "login.html";
+  }
+
+    lucide.createIcons();
+
+    const API_URL = "https://script.google.com/macros/s/AKfycbyIq2coJSoNWQAgXzwhBXJgSrT8r2dVaaQ993iZ9PiMjho8DZgHfy6SldDqEquXU2pV/exec";
+
+    // NAV
+    function showPage(page, el){
+
+      document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+      document.getElementById(page).classList.add("active");
+
+      document.querySelectorAll(".menu button, .bottom-nav button")
+        .forEach(btn=>btn.classList.remove("active"));
+
+      if(el) el.classList.add("active");
+      window.scrollTo(0,0);
+
+      if(page === "clients"){
+        if(!isLoadingClients){
+          loadTable();
+        }
+      }
+
+      if(page === "livraisons"){
+        if(!isLoadingLivraisons){
+          loadLivraisons();
+        }
+        // 🔥 RESET DETAILS
+      document.getElementById("detailsLivraisons").innerHTML = "";
+      }
+    }
+
+    // GENERATE
+    function generateLink(){
+
+      const nomInput = document.getElementById("nomClient").value;
+      const btn = document.querySelector(".generate");
+
+      if(!nomInput){
+        showToast("Ampidiro ny anaran'ny client","warning");
+        return;
+      }
+
+      btn.innerHTML = "⏳ Génération...";
+      btn.disabled = true;
+
+      fetch(API_URL,{
+        method:"POST",
+        headers:{
+          "Content-Type":"text/plain;charset=utf-8"
+        },
+        body: JSON.stringify({
+          action:"createToken",
+          nom: nomInput,
+        })
+      })
+
+      .then(res=>res.json())
+      .then(data=>{
+
+        btn.innerHTML = "Générer le lien";
+        btn.disabled = false;
+
+        if(data.status === "success"){
+
+          const nom = encodeURIComponent(nomInput);
+          const payload = JSON.stringify({
+            nom: nomInput,
+            token: data.token
+          });
+
+          const encoded = btoa(payload);
+
+          const lien = "https://diamaikaservices-ui.github.io/appDM/?data=" + encoded;
+
+          document.getElementById("result").value = lien;
+
+          showToast("Lien généré","success");
+
+        }else if(data.status === "duplicate"){
+
+        showToast("❌ Efa misy client mitovy io anarana io","error");
+
+        }else{
+
+          showToast("Erreur génération token","error");
+
+        }
+
+      })
+      .catch(()=>{
+        btn.innerHTML = "Générer le lien";
+        btn.disabled = false;
+        showToast("Erreur connexion serveur","error");
+      });
+
+    }
+
+    // COPY
+    function copyLink(){
+
+      const text = document.getElementById("result").value;
+
+      if(!text){
+        showToast("Tsy mbola misy lien","warning");
+        return;
+      }
+
+      navigator.clipboard.writeText(text)
+        .then(()=> showToast("Lien copié","success"))
+        .catch(()=> alert("Erreur copie"));
+
+    }
+
+    let isLoadingClients = false;
+    let isLoadingLivraisons = false;
+
+    async function loadTable(retry = 0){
+
+      if(isLoadingClients) return;
+      isLoadingClients = true;
+
+      const loading = document.getElementById("loading");
+      const body = document.getElementById("tableBody");
+
+      body.innerHTML = "";
+      loading.style.display = "block";
+
+      try{
+
+        const res = await fetchWithTimeout(API_URL,{
+          method:"POST",
+          headers:{
+            "Content-Type":"text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action:"getClients",
+            sessionToken: localStorage.getItem("admin_session")
+          })
+        });
+
+        if(!res.ok) throw new Error("HTTP error");
+
+        const data = await res.json();
+
+        if(!Array.isArray(data)) throw new Error("Bad JSON");
+
+        loading.style.display = "none";
+        isLoadingClients = false;
+
+        const now = new Date();
+
+        data.forEach(c=>{
+
+          const usedText = c.used ? "Oui" : "Non";
+
+          let status = "actif";
+
+          if(!c.token){
+            status = "invalid";
+          }
+          else if(c.used){
+            status = "used";
+          }
+          else if(c.expiresAt && new Date(c.expiresAt) < now){
+            status = "expire";
+          }
+
+          let statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+          let isExpired = c.expiresAt && new Date(c.expiresAt) < now;
+
+          let btnText = "";
+          let btnClass = "";
+
+          // 🔥 LOGIQUE MARINA
+          if(status === "actif"){
+            btnText = "Désactiver";
+            btnClass = "deactivate";
+          }
+          else{
+            btnText = "Activer";
+            btnClass = "activate";
+          }
+        body.innerHTML += `
+          <tr>
+            <td data-label="Token">${c.token || "--"}</td>
+            <td data-label="Nom">${c.nom || "--"}</td>
+            <td data-label="Status">
+              <span class="status ${status}">${statusLabel}</span>
+            </td>
+            <td data-label="Used">${usedText}</td>
+            <td data-label="Création">${formatDate(c.createdAt)}</td>
+            <td data-label="Expiration">${formatDate(c.expiresAt)}</td>
+            <td data-label="Lien">
+              <div class="lien-box">
+                <span class="value">${c.lien || "--"}</span>
+                <button class="copy-btn" onclick="copyLien(\`${c.lien}\`)">📋</button>
+              </div>
+            </td>
+            <td data-label="Action">
+              <button class="toggle-btn ${btnClass}"
+                onclick="toggleUsed('${c.token}', '${status}')">
+                ${btnText}
+              </button>
+            </td>
+          </tr>
+          `;
+        });
+
+      }catch(e){
+
+        console.error("Erreur load:", e);
+
+        // 🔁 retry max 2 fois
+        if(retry < 2){
+          setTimeout(()=> loadTable(retry + 1), 1000);
+          return;
+        }
+
+        loading.style.display = "none";
+        isLoadingClients = false;
+
+        showToast("Erreur chargement clients","error");
+
+      }
+    }
+
+    function formatDate(dateStr){
+
+      if(!dateStr) return "--";
+
+      const d = new Date(dateStr);
+
+      return d.toLocaleString("fr-FR");
+    }
+
+    function showToast(message, type="success"){
+
+      const toast = document.getElementById("toast");
+
+      const icons = {
+        success:"✅",
+        error:"❌",
+        warning:"⚠️"
+      };
+
+      toast.className = "toast show " + type;
+      toast.innerText = icons[type] + " " + message;
+
+      setTimeout(()=>{
+        toast.className = "toast";
+      },3000);
+    }
+
+    let selectedState = null;
+
+    let selectedToken = null;
+    let selectedStatus = null;
+
+  function toggleUsed(token, status){
+
+    selectedToken = token;
+    selectedStatus = status;
+
+    let actionText = "";
+
+    if(status === "actif"){
+      actionText = "désactiver ce lien";
+    }else{
+      actionText = "activer ce lien";
+    }
+
+    document.getElementById("modalText").innerText =
+      "Voulez-vous vraiment " + actionText + " ?";
+
+    document.getElementById("confirmModal").classList.add("show");
+  }
+
+    function closeModal(){
+      document.getElementById("confirmModal").classList.remove("show");
+    }
+
+    function confirmAction(){
+
+    closeModal();
+
+    let actionType = "";
+
+    if(selectedStatus === "actif"){
+      actionType = "deactivateToken";
+    }else{
+      actionType = "activateToken";
+    }
+
+    // 🔥 LOADING BUTTON
+    const btns = document.querySelectorAll(".toggle-btn");
+    btns.forEach(b=>{
+      b.disabled = true;
+      b.innerText = "⏳...";
+    });
+
+    fetch(API_URL,{
+      method:"POST",
+      headers:{
+        "Content-Type":"text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action: actionType,
+        token: selectedToken,
+        sessionToken: localStorage.getItem("admin_session")
+      })
+    })
+    .then(res=>res.json())
+    .then(data=>{
+
+      console.log("RESPONSE:", data); // 🔍 debug
+
+      if(data.status === "success"){
+
+        if(actionType === "activateToken"){
+          showToast("Lien activé (date mise à jour)","success");
+        }else{
+          showToast("Lien désactivé","success");
+        }
+
+        loadTable();
+
+      }else{
+        showToast("Erreur serveur (action inconnue)","error");
+        loadTable(); // reset UI
+      }
+
+    })
+    .catch(()=>{
+      showToast("Erreur connexion serveur","error");
+      loadTable();
+    });
+
+  }
+
+    function copyLien(lien){
+
+      if(!lien){
+        showToast("Lien introuvable","warning");
+        return;
+      }
+
+      try{
+
+        const url = new URL(lien);
+
+        const nom = url.searchParams.get("nom");
+        const token = url.searchParams.get("token");
+
+        // 🔐 encode
+        const payload = JSON.stringify({ nom, token });
+        const encoded = btoa(payload);
+
+        const secureLink = url.origin + url.pathname + "?data=" + encoded;
+
+        navigator.clipboard.writeText(secureLink)
+          .then(()=> showToast("Lien sécurisé copié","success"))
+          .catch(()=> showToast("Erreur copie","error"));
+
+      }catch(e){
+        showToast("Lien invalide","error");
+      }
+    }
+
+    function filterClients(){
+
+      const search = document.getElementById("searchClient").value.toLowerCase();
+      const rows = document.querySelectorAll("#tableBody tr");
+
+      rows.forEach(row=>{
+
+        const nom = row.cells[1].innerText.toLowerCase();
+
+        if(nom.includes(search)){
+          row.style.display = "";
+        }else{
+          row.style.display = "none";
+        }
+
+      });
+
+    }
+
+    function fetchWithTimeout(url, options, timeout = 80000){
+      return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject)=>
+          setTimeout(()=> reject(new Error("Timeout")), timeout)
+        )
+      ]);
+    }
+
+    async function loadLivraisons(){
+
+    if(isLoadingLivraisons) return;
+    isLoadingLivraisons = true;
+
+    const body = document.getElementById("livraisonsTable");
+    const loading = document.getElementById("loadingLivraisons");
+
+    body.innerHTML = "";
+    loading.style.display = "block";
+
+    try{
+
+      // =========================
+      // 📦 GET ALL LIVRAISONS
+      // =========================
+      const res = await fetchWithTimeout(API_URL,{
+        method:"POST",
+        headers:{
+          "Content-Type":"text/plain;charset=utf-8"
+        },
+        body: JSON.stringify({
+          action:"getAllLivraisons",
+          sessionToken: localStorage.getItem("admin_session")
+        })
+      });
+
+      const data = await res.json();
+
+      loading.style.display = "none";
+
+      if(!data || !data.livraisons || data.livraisons.length === 0){
+        showToast("Aucune donnée","warning");
+        isLoadingLivraisons = false;
+        return;
+      }
+
+      // =========================
+      // 🔥 GROUP BY CLIENT
+      // =========================
+      const map = {};
+
+      data.livraisons.forEach(l=>{
+        if(!l.nom) return;
+
+        if(!map[l.nom]){
+          map[l.nom] = [];
+        }
+
+        map[l.nom].push(l);
+      });
+
+      let html = "";
+
+      // =========================
+      // 🔥 LOOP CLIENTS
+      // =========================
+      Object.keys(map).forEach(nom=>{
+
+        const list = map[nom];
+
+        // 🔥 tri DESC
+        list.sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+        const newLivraisons = list;
+
+        // =========================
+        // 🔔 NOTIFICATIONS
+        // =========================
+        let notifHTML = "—";
+
+        if(newLivraisons.length > 0){
+
+          const group = {};
+
+          newLivraisons.forEach(l=>{
+
+            const d = new Date(l.date.toString().replace(" ", "T"));
+
+            const jour = String(d.getDate()).padStart(2,"0");
+            const mois = String(d.getMonth()+1).padStart(2,"0");
+            const annee = d.getFullYear();
+
+            const dateKey = `${jour}/${mois}/${annee}`;
+
+            if(!group[dateKey]){
+              group[dateKey] = {
+                count:0,
+                lastTimestamp:0,
+                lastFull:""
+              };
+            }
+
+            group[dateKey].count++;
+
+            const timestamp = d.getTime();
+
+            if(timestamp > group[dateKey].lastTimestamp){
+
+              group[dateKey].lastTimestamp = timestamp;
+
+              const heures = String(d.getHours()).padStart(2,"0");
+              const minutes = String(d.getMinutes()).padStart(2,"0");
+              const secondes = String(d.getSeconds()).padStart(2,"0");
+
+              group[dateKey].lastFull =
+                `${jour}/${mois}/${annee} ${heures}:${minutes}:${secondes}`;
+            }
+          });
+
+          const sortedDates = Object.keys(group).sort((a,b)=>{
+            const [da,ma,ya] = a.split("/");
+            const [db,mb,yb] = b.split("/");
+            return new Date(`${yb}-${mb}-${db}`) - new Date(`${ya}-${ma}-${da}`);
+          });
+
+          notifHTML = sortedDates.map(date=>{
+            return `
+              <div class="notif-badge">
+                🟢 ${group[date].count} nouveau • ${group[date].lastFull}
+              </div>
+            `;
+          }).join("");
+        }
+
+        // =========================
+        // 🔥 HTML
+        // =========================
+        html += `
+          <tr>
+            <td data-label="Nom client">${nom}</td>
+
+            <td data-label="Date">
+              <input type="date" id="date-${nom}">
+            </td>
+
+            <td data-label="Notifications">
+              ${notifHTML}
+            </td>
+
+            <td data-label="Action">
+              <button onclick="openLivraisonAndMark('${nom}')">
+                📦 Voir
+              </button>
+            </td>
+          </tr>
+        `;
+      });
+
+      body.innerHTML = html;
+
+      isLoadingLivraisons = false;
+
+    }catch(e){
+
+      console.error(e);
+
+      loading.style.display = "none";
+      isLoadingLivraisons = false;
+
+      showToast("Erreur chargement livraisons","error");
+    }
+  }
+
+    let lastClick = 0;
+    let selectedDate = "";
+
+    async function showLivraisons(nom){
+
+      
+      const dateInput = document.getElementById(`date-${nom}`).value;
+      selectedDate = dateInput;
+
+      if(!dateInput){
+        showToast("Choisis une date","warning");
+        return;
+      }
+
+      const modal = document.getElementById("livraisonModal");
+      const content = document.getElementById("modalContent");
+
+      modal.classList.add("show");
+      content.innerHTML = "<p>⏳ Chargement...</p>";
+
+      try{
+
+        const res = await fetch(API_URL,{
+          method:"POST",
+          headers:{
+            "Content-Type":"text/plain;charset=utf-8"
+          },
+          body: JSON.stringify({
+            action:"getLivraisonsByClient",
+            nom: nom,
+            sessionToken: localStorage.getItem("admin_session")
+          })
+        });
+
+        const data = await res.json();
+
+        if(!data.livraisons){
+          content.innerHTML = "<p>Aucune donnée</p>";
+          return;
+        }
+
+        // 🔥 filtre date
+        const filtered = data.livraisons.filter(l=>{
+
+          if(!l.date) return false;
+
+          const raw = l.date.toString();
+
+          let formatted = "";
+
+          if(raw.includes("/")){
+            const [d,m,y] = raw.split(" ")[0].split("/");
+            formatted = `${y}-${m.padStart(2,"0")}-${d.padStart(2,"0")}`;
+          }
+          else if(raw.includes("T")){
+            formatted = raw.split("T")[0];
+          }
+          else{
+            const d = new Date(raw);
+            formatted = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+          }
+
+          return formatted === dateInput;
+        });
+
+        if(filtered.length === 0){
+          content.innerHTML = "<p>Aucune livraison pour cette date</p>";
+          return;
+        }
+
+        const info = data.info;
+
+        // 🔥 NOUVEAU DESIGN
+        let html = `
+    <div id="fiche" style="
+      background:#fff;
+      padding:25px;
+      border-radius:14px;
+      max-width:900px;
+      margin:auto;
+      font-family:Arial;
+    ">
+
+      <!-- HEADER -->
+    <div style="
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      border-bottom:2px solid #eee;
+      padding-bottom:12px;
+      margin-bottom:20px;
+    ">
+
+      <!-- LEFT -->
+      <div style="flex:1;">
+        <img src="logo.jpg" style="width:120px;">
+      </div>
+
+      <!-- CENTER -->
+      <div style="
+        flex:1;
+        text-align:center;
+        font-weight:bold;
+        font-size:18px;
+      ">
+        DIA MAIKA SERVICES
+      </div>
+
+      <!-- RIGHT -->
+      <div style="
+        flex:1;
+        text-align:right;
+        font-size:13px;
+        color:#444;
+      ">
+        <b>Livraison du :</b> ${formatDateOnly(dateInput)}
+      </div>
+
+    </div>
+
+      <!-- SECTIONS -->
+      <div style="display:flex;gap:50px;margin-bottom:20px;">
+
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:4px;height:20px;background:#e53935;"></div>
+            <div style="font-weight:bold;">Pour la récupération</div>
+          </div>
+
+          <div style="font-size:13px;line-height:1.7;">
+          <div><b>Nom du Responsable :</b> ${info.nom}</div>
+          <div><b>Contact :</b> <span class="contact">${info.contact}</span></div>
+          <div><b>Lieu :</b> ${info.lieuRecup}</div>
+          <div><b>Facebook :</b> ${info.page}</div>
+          </div>
+        </div>
+
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="width:4px;height:20px;background:#e53935;"></div>
+            <div style="font-weight:bold;">Pour la livraison</div>
+          </div>
+
+          <div style="font-size:13px;font-weight:bold;">
+            Nombre de livraisons : ${filtered.length}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- TABLE -->
+      <table style="
+        width:100%;
+        border-collapse:collapse;
+        font-size:13px;
+      ">
+
+        <thead>
+          <tr>
+            <th style="background:#e53935;color:white;padding:10px;">N° Suivi</th>
+            <th style="background:#e53935;color:white;padding:10px;">Nom Client</th>
+            <th style="background:#e53935;color:white;padding:10px;">Contact</th>
+            <th style="background:#e53935;color:white;padding:10px;">Lieu Livraison</th>
+            <th style="background:#e53935;color:white;padding:10px;">Article</th>
+            <th style="background:#e53935;color:white;padding:10px;text-align:right;">Prix</th>
+            <th style="background:#e53935;color:white;padding:10px;">Remarque</th>
+        </tr>
+      </thead>
+
+        <tbody>
+    `;
+
+    filtered.forEach((l,i)=>{
+      html += `
+        <tr style="
+          background:${i%2===0 ? "#fff" : "#f5f5f5"};
+          border-bottom:1px solid #ddd;
+        ">
+          <td style="padding:10px;font-weight:bold;white-space:nowrap;">
+            ${l.suivi}
+          </td>
+
+          <td style="padding:10px; white-space:normal;">
+            ${l.client}
+          </td>
+
+          <td style="padding:10px;word-break:break-word;" class="contact-table">
+            ${l.contact}
+          </td>
+
+          <td style="padding:10px;word-break:break-word;">
+            ${l.lieu}
+          </td>
+
+        <td style="padding:10px;word-break:break-word;">
+            ${l.article}
+          </td>
+
+          <td style="padding:10px;text-align:right;font-weight:bold;">
+            <span style="white-space:nowrap; display:inline-block;">
+              ${Number(l.prix).toLocaleString('fr-FR')} Ar
+            </span>
+          </td>
+
+          <td style="padding:10px;">
+            ${l.remarque}
+          </td>
+        </tr>
+      `;
+    });
+
+    html += `
+        </tbody>
+      </table>
+
+      <!-- FOOTER -->
+      <div style="
+        margin-top:25px;
+        text-align:center;
+        border-top:2px solid #eee;
+        padding-top:10px;
+        font-size:11px;
+        color:#555;
+      ">
+        Merci de votre confiance !<br><br>
+        📘 Dia Maika | 📞 038 51 791 32
+      </div>
+
+    </div>
+
+  <div style="margin-top:15px;">
+    <button onclick="downloadPNG()" style="
+      width:100%;
+      padding:12px;
+      background:#e53935;
+      color:white;
+      border:none;
+      border-radius:10px;
+      font-size:14px;
+    ">
+      Télécharger PNG
+    </button>
+  </div>
+    `;
+
+        content.innerHTML = html;
+
+        formatContacts();
+        formatPrix();
+
+      }catch(e){
+        content.innerHTML = "<p>❌ Erreur</p>";
+      }
+    }
+
+    function filterLivraisons(){
+
+      const search = document
+        .getElementById("searchLivraison")
+        .value.toLowerCase();
+
+      const rows = document.querySelectorAll("#livraisonsTable tr");
+
+      rows.forEach(row=>{
+
+        const nom = row.cells[0].innerText.toLowerCase();
+
+        if(nom.includes(search)){
+          row.style.display = "";
+        }else{
+          row.style.display = "none";
+        }
+
+      });
+
+    }
+
+    function formatDateLivraison(dateStr){
+
+      if(!dateStr) return "--";
+
+      // 🔧 fix format GAS
+      const d = new Date(dateStr.toString().replace(" ", "T"));
+
+      const jours = [
+        "Dimanche","Lundi","Mardi","Mercredi",
+        "Jeudi","Vendredi","Samedi"
+      ];
+
+      const mois = [
+        "Janvier","Février","Mars","Avril","Mai","Juin",
+        "Juillet","Août","Septembre","Octobre","Novembre","Décembre"
+      ];
+
+      const jour = jours[d.getDay()];
+      const date = String(d.getDate()).padStart(2,"0");
+      const moisNom = mois[d.getMonth()];
+      const annee = d.getFullYear();
+
+      const heures = String(d.getHours()).padStart(2,"0");
+      const minutes = String(d.getMinutes()).padStart(2,"0");
+
+      return `${jour} ${date} ${moisNom} ${annee} • ${heures}:${minutes}`;
+    }
+
+    function closeLivraisonModal(){
+      document.getElementById("livraisonModal").classList.remove("show");
+      // 🔥 refresh notif
+      loadLivraisons();
+    }
+
+    function formatPrix(){
+      document.querySelectorAll(".prix").forEach(cell=>{
+        let value = cell.innerText.replace(/\D/g,'');
+        value = parseInt(value);
+        if(!isNaN(value)){
+          cell.innerText = value.toLocaleString('fr-FR');
+        }
+      });
+    }
+
+    function formatContacts(){
+      document.querySelectorAll(".contact, .contact-table").forEach(el=>{
+
+        let text = el.innerText.trim();
+
+        if(!text) return;
+
+        let nums = text.split(/[,/]/);
+
+        nums = nums.map(n=>{
+          n = n.replace(/\D/g,'');
+
+          if(n.startsWith("261")) n = "0" + n.substring(3);
+          if(n.length === 9) n = "0" + n;
+
+          if(n.length === 10){
+            return n.replace(/(\d{3})(\d{2})(\d{3})(\d{2})/,"$1 $2 $3 $4");
+          }
+
+          return n;
+        });
+
+        el.innerText = nums.join(" / ");
+      });
+    }
+
+    function downloadPNG(){
+
+      openDownloadModal(() => {
+
+        const original = document.querySelector("#fiche");
+        const clone = original.cloneNode(true);
+
+        clone.classList.add("png-mode");
+        clone.classList.add("desktop-mode");
+
+        clone.style.position = "absolute";
+        clone.style.top = "-9999px";
+        clone.style.left = "0";
+
+        clone.style.width = "900px";
+        clone.style.maxWidth = "900px";
+        clone.style.minWidth = "900px";
+
+        clone.style.background = "#fff";
+        clone.style.fontSize = "11px";
+        clone.style.lineHeight = "1.5";
+        clone.style.fontFamily = "Arial, sans-serif";
+
+        clone.querySelectorAll("td, th, div, span").forEach(el=>{
+          el.style.letterSpacing = "0.2px";
+          el.style.wordSpacing = "1px";
+        });
+
+        // 🔥 FORCE DESKTOP TABLE (KEY FIX)
+        clone.querySelectorAll("tr").forEach(el=>{
+          el.style.display = "table-row";
+        });
+
+        clone.querySelectorAll("td, th").forEach(el=>{
+          el.style.display = "table-cell";
+        });
+
+        clone.querySelectorAll("tbody").forEach(el=>{
+          el.style.display = "table-row-group";
+        });
+
+        clone.querySelectorAll("thead").forEach(el=>{
+          el.style.display = "table-header-group";
+        });
+
+        clone.querySelectorAll("table").forEach(el=>{
+          el.style.display = "table";
+        });
+
+        document.body.appendChild(clone);
+
+        // 🔥 REMOVE BLUE BAR
+        const style = document.createElement("style");
+        style.innerHTML = `
+          tr::before{
+            content: none !important;
+            display: none !important;
+          }
+        `;
+        clone.appendChild(style);
+
+        html2canvas(clone,{
+          scale:3,
+          useCORS:true
+        }).then(canvas=>{
+
+          const link = document.createElement("a");
+
+          let nom = "client";
+          const match = original.innerText.match(/Nom du Responsable : (.+)/);
+
+          if(match){
+            nom = match[1];
+          }
+
+          nom = nom.replace(/\s+/g,"_").replace(/[^\w]/g,"");
+
+          let date = "date";
+
+          if(selectedDate){
+            const d = new Date(selectedDate);
+
+            const jour = String(d.getDate()).padStart(2,"0");
+            const mois = String(d.getMonth()+1).padStart(2,"0");
+            const annee = String(d.getFullYear()).slice(-2);
+
+            date = `${jour}-${mois}-${annee}`;
+          }
+
+          link.download = nom + "_" + date + ".png";
+
+          link.href = canvas.toDataURL();
+          link.click();
+
+          document.body.removeChild(clone);
+        });
+
+      });
+
+    }
+
+    function formatDateOnly(dateStr){
+
+      if(!dateStr) return "--";
+
+      const d = new Date(dateStr);
+
+      const jours = [
+        "Dimanche","Lundi","Mardi","Mercredi",
+        "Jeudi","Vendredi","Samedi"
+      ];
+
+      const mois = [
+        "Janvier","Février","Mars","Avril","Mai","Juin",
+        "Juillet","Août","Septembre","Octobre","Novembre","Décembre"
+      ];
+
+      const jour = jours[d.getDay()];
+      const date = String(d.getDate()).padStart(2,"0");
+      const moisNom = mois[d.getMonth()];
+      const annee = d.getFullYear();
+
+      return `${jour} ${date} ${moisNom} ${annee}`;
+    }
+
+    let downloadCallback = null;
+
+    function openDownloadModal(callback){
+      downloadCallback = callback;
+      document.getElementById("downloadModal").classList.add("show");
+    }
+
+    function closeDownloadModal(){
+      document.getElementById("downloadModal").classList.remove("show");
+    }
+
+    function confirmDownload(){
+      closeDownloadModal();
+      if(downloadCallback) downloadCallback();
+    }
+
+    // 🔔 AUTO REFRESH LIVRAISONS
+    // setInterval(()=>{
+    //   if(document.getElementById("livraisons").classList.contains("active")){
+    //     loadLivraisons();
+    //   }
+    // }, 15000);
+
+    let selectedNomLivraison = null;
+    let selectedDateLivraison = null;
+
+    async function openLivraisonAndMark(nom){
+
+      const date = document.getElementById(`date-${nom}`).value;
+
+      if(!date){
+        showToast("⚠️ Choisis une date avant de voir", "warning");
+        return;
+      }
+
+      // 🔥 stock data
+      selectedNomLivraison = nom;
+      selectedDateLivraison = date;
+
+      // 🔥 message custom
+      document.getElementById("modalText").innerText =
+        "Voir les livraisons ?\nLes notifications seront marquées comme vues.";
+
+      // 🔥 changer bouton confirm
+      document.querySelector("#confirmModal .btn-confirm").onclick = confirmVoirLivraisons;
+
+      // 🔥 open modal
+      document.getElementById("confirmModal").classList.add("show");
+    }
+
+    function handleDateChange(nom){
+
+      const date = document.getElementById(`date-${nom}`).value;
+      const btn = document.getElementById(`btn-${nom}`);
+
+      if(date){
+        btn.disabled = false;
+        btn.style.opacity = "1";
+      }else{
+        btn.disabled = true;
+        btn.style.opacity = "0.5";
+      }
+    }
+
+    function logout(){
+    document.getElementById("logoutModal").classList.add("show");
+  }
+
+      async function checkSession(){
+
+    const res = await fetch(API_URL,{
+      method:"POST",
+      headers:{
+        "Content-Type":"text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action:"getClients",
+        sessionToken: localStorage.getItem("admin_session")
+      })
+    });
+
+    const data = await res.json();
+
+    if(data.error === "unauthorized"){
+      localStorage.removeItem("admin_session");
+      window.location.href = "login.html";
+    }
+  }
+
+  function closeLogoutModal(){
+    document.getElementById("logoutModal").classList.remove("show");
+  }
+
+  function confirmLogout(){
+
+    localStorage.removeItem("admin_session");
+
+    window.location.replace("login.html");
+  }
+
+async function confirmVoirLivraisons(){
+
+  closeModal(); // fermer popup
+
+  try{
+
+    const d = new Date(selectedDateLivraison);
+
+    const jour = String(d.getDate()).padStart(2,"0");
+    const mois = String(d.getMonth()+1).padStart(2,"0");
+    const annee = d.getFullYear();
+
+    const dateKey = `${jour}/${mois}/${annee}`;
+
+    // 🔥 loading simple (ao anaty modal)
+    document.getElementById("modalContent").innerHTML = "⏳ Chargement...";
+
+    await fetch(API_URL,{
+      method:"POST",
+      headers:{
+        "Content-Type":"text/plain;charset=utf-8"
+      },
+      body: JSON.stringify({
+        action:"markLivraisonsSeen",
+        nom: selectedNomLivraison,
+        date: dateKey,
+        sessionToken: localStorage.getItem("admin_session")
+      })
+    });
+
+    // ✅ OPEN
+    showLivraisons(selectedNomLivraison);
+
+  }catch(e){
+    console.error(e);
+    showToast("Erreur ❌","error");
+  }
+}
+
+  // appel au chargement
+  checkSession();
+
+    </script>
+
+    <div id="toast" class="toast"></div>
+  <div id="confirmModal" class="modal">
+    <div class="modal-content" style="max-width:400px;">
+
+      <div class="modal-header">
+        <h3 id="modalTitle">Confirmation</h3>
+      </div>
+
+      <div style="padding:20px;text-align:center;">
+        <span id="modalText">...</span>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Annuler</button>
+        <button class="btn-confirm" onclick="confirmAction()">Confirmer</button>
+      </div>
+
+    </div>
+  </div>
+
+    <div id="livraisonModal" class="modal">
+      <div class="modal-content">
+        <!-- HEADER -->
+        <div class="modal-header">
+          <h3>Livraisons</h3>
+        </div>
+        <!-- CONTENT -->
+        <div id="modalContent"></div>
+        <!-- FOOTER -->
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeLivraisonModal()">Fermer</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="downloadModal" class="modal">
+      <div class="modal-content" style="max-width:400px;">
+
+        <div class="modal-header">
+          <h3>Téléchargement</h3>
+        </div>
+
+        <div style="padding:20px;text-align:center;">
+          Voulez-vous télécharger ce fichier PNG ?
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeDownloadModal()">Annuler</button>
+          <button class="btn-confirm" onclick="confirmDownload()">Télécharger</button>
+        </div>
+
+      </div>
+    </div>
+    <div id="logoutModal" class="modal">
+      <div class="modal-content" style="max-width:400px;">
+
+        <div class="modal-header">
+          <h3>Déconnexion</h3>
+        </div>
+
+        <div style="padding:20px;text-align:center;">
+          <div style="font-size:40px;margin-bottom:10px;">🔐</div>
+          <p>Voulez-vous vraiment vous déconnecter ?</p>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeLogoutModal()">Annuler</button>
+          <button class="btn-confirm" style="background:#dc3545;" onclick="confirmLogout()">
+            Déconnexion
+          </button>
+        </div>
+      </div>
+    </div>
+
+    </body>
+    </html>
