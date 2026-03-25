@@ -2007,10 +2007,30 @@
             date = `${jour}-${mois}-${annee}`;
           }
 
-          link.download = nom + "_" + date + ".png";
+          // link.download = nom + "_" + date + ".png";
 
-          link.href = canvas.toDataURL();
-          link.click();
+          // link.href = canvas.toDataURL();
+          // link.click();
+
+          const dataUrl = canvas.toDataURL("image/png");
+
+          // 🔥 MOBILE DETECTION
+          const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+          if(isMobile){
+
+            // 👉 ouvre image (user afaka long press → save)
+            const newTab = window.open();
+            newTab.document.write(`<img src="${dataUrl}" style="width:100%">`);
+
+          }else{
+
+            // 👉 desktop download normal
+            const link = document.createElement("a");
+            link.download = nom + "_" + date + ".png";
+            link.href = dataUrl;
+            link.click();
+          }
 
           document.body.removeChild(clone);
         });
