@@ -449,16 +449,6 @@
       cursor:pointer;
     }
 
-    .png-mode {
-      font-size: 10px !important;
-      line-height: 1.5 !important;
-    }
-
-    .png-mode * {
-      font-size: 10px !important;
-      line-height: 1.5 !important;
-    }
-
     .notif-badge{
       display:block;    
       background:#198754;
@@ -475,6 +465,54 @@
     button:disabled{
       opacity:0.5;
       cursor:not-allowed;
+    }
+
+    #fiche tr::before{
+      display:none !important;
+    }
+
+    #fiche thead th:first-child{
+      border-top-left-radius:12px;
+      border-bottom-left-radius:12px;
+    }
+
+    #fiche thead th:last-child{
+      border-top-right-radius:12px;
+      border-bottom-right-radius:12px;
+    }
+
+    #fiche tbody tr{
+      overflow:hidden;
+      border-radius:12px;
+       box-shadow:0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    #fiche thead tr{
+      overflow:hidden;
+    }
+
+    #fiche,
+    #fiche *{
+      font-size:11px !important;
+    }
+
+    #fiche table{
+      font-size:11px;
+    }
+
+    #livraisonModal tr{
+      position:relative;
+      padding-left:14px;
+    }
+
+    #livraisonModal .ligne-card{
+      position:relative;
+      padding-left:12px;
+    }
+
+   #livraisonModal .ligne-card{
+      border-left:4px solid #e53935;
+      padding-left:10px;
     }
 
     /* MOBILE */
@@ -549,6 +587,10 @@
       background:#0d6efd;
       border-radius:0 6px 6px 0;
       background:linear-gradient(180deg,#0d6efd,#4dabf7);
+    }
+
+    #livraisonModal tr::before{
+      display:none !important;
     }
 
       tr{
@@ -1725,7 +1767,8 @@
       <!-- TABLE -->
       <table style="
         width:100%;
-        border-collapse:collapse;
+        border-collapse:separate;
+        border-spacing:0 10px;
         font-size:13px;
       ">
 
@@ -1746,9 +1789,9 @@
 
     filtered.forEach((l,i)=>{
       html += `
-        <tr style="
+       <tr class="ligne-card" style="
           background:${i%2===0 ? "#fff" : "#f5f5f5"};
-          border-bottom:1px solid #ddd;
+          box-shadow:0 4px 10px rgba(0,0,0,0.05);
         ">
           <td style="padding:10px;font-weight:bold;white-space:nowrap;">
             ${l.suivi}
@@ -1926,74 +1969,51 @@
     const original = document.querySelector("#fiche");
     const clone = original.cloneNode(true);
 
-    clone.classList.add("png-mode");
     clone.style.position = "absolute";
     clone.style.top = "-9999px";
     clone.style.left = "0";
-
     clone.style.width = "900px";
     clone.style.background = "#fff";
 
     document.body.appendChild(clone);
 
     html2canvas(clone,{
-      scale: 3,
-      useCORS: true
+      scale: 2,
+      useCORS: true,
+      windowWidth: 1200   // 🔥 KEY FIX
     }).then(canvas => {
 
-      const dataUrl = canvas.toDataURL("image/png");
+     const dataUrl = canvas.toDataURL("image/png");
 
-      // 🔥 FILE NAME
-      let nom = "client";
-      const match = original.innerText.match(/Nom du Responsable : (.+)/);
+    // 🔥 NOM CLIENT
+    let nom = "client";
+    const match = original.innerText.match(/Nom du Responsable : (.+)/);
 
-      if(match){
-        nom = match[1];
-      }
+    if(match){
+      nom = match[1];
+    }
 
-      nom = nom.replace(/\s+/g,"_").replace(/[^\w]/g,"");
+    nom = nom.replace(/\s+/g,"_").replace(/[^\w]/g,"");
 
-      let date = "date";
+    // 🔥 DATE
+    let date = "date";
 
-      if(selectedDate){
-        const d = new Date(selectedDate);
-        date = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getFullYear()).slice(-2)}`;
-      }
+    if(selectedDate){
+      const d = new Date(selectedDate);
+      date = `${String(d.getDate()).padStart(2,"0")}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getFullYear()).slice(-2)}`;
+    }
 
-      const fileName = nom + "_" + date + ".png";
+    const fileName = nom + "_" + date + ".png";
 
-      // 🔥 DETECTION SIMPLE
-      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-      if(isIOS){
-
-        // 🍏 iOS → open image (best possible)
-        const win = window.open("");
-        win.document.write(`
-          <title>${fileName}</title>
-          <img src="${dataUrl}" style="width:100%">
-          <p style="text-align:center;font-family:sans-serif;">
-            ➡️ Appuie longtemps sur l'image puis "Enregistrer"
-          </p>
-        `);
-
-      }else{
-
-        // 🤖 Android + 💻 Desktop → direct download
-        const link = document.createElement("a");
-        link.href = dataUrl;
-        link.download = fileName;
-
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = fileName;
+    link.click();
 
       document.body.removeChild(clone);
 
     }).catch(err => {
       console.error(err);
-      showToast("Erreur génération PNG ❌","error");
     });
 
   });
